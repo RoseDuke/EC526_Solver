@@ -70,6 +70,9 @@ int main()
             res[lev][i] = 0.0;
         };
     }
+    for (lev = 0; lev < p.Lmax + 1; lev++) {
+        #pragma acc enter data copyin(phi[lev][0:p.size[lev]*p.size[lev]], res[lev][0:p.size[lev]*p.size[lev]])
+    }
 
     res[0][p.N / 2 + (p.N / 2) * p.N] = 1.0 * p.scale[0]; // unit point source in middle of N by N lattice
 
@@ -77,11 +80,15 @@ int main()
     double resmag = 1.0; // not rescaled.
     int ncycle = 7;
     int n_per_lev = 10;
+    printf("before root\n");
+
+
     resmag = GetResRoot(phi[0], res[0], 0, p);
+
     printf("At the %d cycle the mag residue is %g \n", ncycle, resmag);
+    exit(0);
 
     // while(resmag > 0.00001 && ncycle < 10000)
-    #pragma acc data copy(phi[0:nlev][0:p.size[lev]*p.size[lev]], res[0:nlev][0:p.size[lev]*p.size[lev]])
     auto start = std::chrono::high_resolution_clock::now();
     while (resmag > 1e-6)
     {
@@ -203,7 +210,7 @@ double GetResRoot(double *phi, double *res, int lev, param_t p)
     double ResRoot = 0.0;
     int L;
     L = p.size[lev];
-    #pragma acc parallel loop reduction(+:ResRoot) present(phi[0:L*L], res[0:L*L])
+    //#pragma acc parallel loop reduction(+:ResRoot) present(phi[0:L*L], res[0:L*L])
     for (x = 0; x < L; x++)
         for (y = 0; y < L; y++)
         {

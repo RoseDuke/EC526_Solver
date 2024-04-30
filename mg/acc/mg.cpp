@@ -22,21 +22,22 @@ double GetResRoot(double *phi, double *res, int lev, param_t p);
 
 int main()
 {
+    #pragma acc init
     double *phi[20], *res[20];
     param_t p;
     int nlev;
     int i, lev;
 
     // set parameters________________________________________
-    p.Lmax = 8; //5~9                    // max number of levels
+    p.Lmax = 4; //5~9                    // max number of levels
     p.N = 2 * (int)pow(2, p.Lmax); // MUST BE POWER OF 2
     printf("N: %d\n", p.N);
     // set m^2 directly
     //p.m2 = 0.0001;
-     p.m2 = 0.1; // 3000 e-6
+    // p.m2 = 0.1; // 3000 e-6
     // p.m2 = 0.01; // 19003 e-6
     // p.m2 = 0.001; // 108023 e-6
-    //p.m2 = 0.001; // 980357 e-6
+    p.m2 = 0.0001; // 980357 e-6
 
 
     //nlev = 6; // NUMBER OF LEVELS:  nlev = 0 give top level alone

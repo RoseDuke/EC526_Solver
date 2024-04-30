@@ -3,7 +3,7 @@
 #include <math.h>
 #include <complex.h>
 #include <chrono>
-
+#include <omp.h>
 
 typedef struct
 {
@@ -22,6 +22,7 @@ double GetResRoot(double *phi, double *res, int lev, param_t p);
 
 int main()
 {
+    omp_set_num_threads(4);
     double *phi[20], *res[20];
     param_t p;
     int nlev;
@@ -33,11 +34,13 @@ int main()
     printf("N: %d\n", p.N);
     // set m^2 directly
     //p.m2 = 0.0001;
-     p.m2 = 0.1; // 3000 e-6
-    // p.m2 = 0.01; // 19003 e-6
-    // p.m2 = 0.001; // 108023 e-6
-    //p.m2 = 0.001; // 980357 e-6
 
+    p.m2 = 1.5;   //  104,730 
+    // p.m2 = 0.1; //  703926 e-6
+    // p.m2 = 0.01; // 5925628 e-6
+    //p.m2 = 0.001;  //  50445467 e-6
+    //p.m2 = 0.0001;
+    
 
     //nlev = 6; // NUMBER OF LEVELS:  nlev = 0 give top level alone
     nlev = p.Lmax - 1;
@@ -120,17 +123,10 @@ void relax(double *phi, double *res, int lev, int niter, param_t p)
     L = p.size[lev];
     double *phi_new = (double *)malloc(L * L * sizeof(double));
 
-    for (int x = 0; x < L; x++)
-    {
-        for (int y = 0; y < L; y++)
-        {
-            phi_new[x + y * L] = phi[x + y * L];
-        }
-    }
     
-
     for (int i = 0; i < niter; i++)
     {
+        #pragma omp parallel for
         for (int x = 0; x < L; x++)
         {
             for (int y = 0; y < L; y++)
@@ -144,7 +140,7 @@ void relax(double *phi, double *res, int lev, int niter, param_t p)
             }
         }
 
-        
+        #pragma omp parallel for
         for (int x = 0; x < L; x++)
         {
             for (int y = 0; y < L; y++)
@@ -166,11 +162,13 @@ void proj_res(double *res_c, double *res_f, double *phi_f, int lev, param_t p)
     Lc = p.size[lev + 1]; // course level
 
     // get residue
+    #pragma omp parallel for
     for (x = 0; x < L; x++)
         for (y = 0; y < L; y++)
             r[x + y * L] = res_f[x + y * L] - phi_f[x + y * L] + p.scale[lev] * (phi_f[(x + 1) % L + y * L] + phi_f[(x - 1 + L) % L + y * L] + phi_f[x + ((y + 1) % L) * L] + phi_f[x + ((y - 1 + L) % L) * L]);
 
     // project residue
+    #pragma omp parallel for
     for (x = 0; x < Lc; x++)
         for (y = 0; y < Lc; y++)
             res_c[x + y * Lc] = 0.25 * (r[2 * x + 2 * y * L] + r[(2 * x + 1) % L + 2 * y * L] + r[2 * x + ((2 * y + 1)) % L * L] + r[(2 * x + 1) % L + ((2 * y + 1) % L) * L]);
@@ -183,6 +181,7 @@ void inter_add(double *phi_f, double *phi_c, int lev, param_t p)
     Lc = p.size[lev]; // coarse  level
     L = p.size[lev - 1];
 
+    #pragma omp parallel for
     for (x = 0; x < Lc; x++)
         for (y = 0; y < Lc; y++)
         {
@@ -193,7 +192,7 @@ void inter_add(double *phi_f, double *phi_c, int lev, param_t p)
         }
     
     // set to zero so phi = error
-    
+    #pragma omp parallel for
     for (x = 0; x < Lc; x++)
         for (y = 0; y < Lc; y++){
             phi_c[x + y * Lc] = 0.0;
@@ -209,13 +208,14 @@ double GetResRoot(double *phi, double *res, int lev, param_t p)
     double ResRoot = 0.0;
     int L;
     L = p.size[lev];
-
+    #pragma omp parallel for reduction(+:ResRoot)
     for (x = 0; x < L; x++)
         for (y = 0; y < L; y++)
         {
             residue = res[x + y * L] / p.scale[lev] - phi[x + y * L] / p.scale[lev] + (phi[(x + 1) % L + y * L] + phi[(x - 1 + L) % L + y * L] + phi[x + ((y + 1) % L) * L] + phi[x + ((y - 1 + L) % L) * L]);
             ResRoot += residue * residue; // true residue
         }
-
     return sqrt(ResRoot);
 }
+
+
