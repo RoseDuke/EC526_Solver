@@ -1,0 +1,30 @@
+CC=pgc++
+
+CFLAGS= -g -Wall -std=c++11 -Minfo=accel -fast -acc -ta=tesla:cc70
+
+LDFLAGS=-acc -ta=tesla:cc70 -Mcuda
+
+OBJS1=pj_jacobi_2d.o
+OBJS2=pj_red_black_memory.o
+OBJS3=pj_red_black_low_precision.o
+
+TARGET1=pj_jacobi_2d
+TARGET2=pj_red_black_memory
+TARGET3=pj_red_black_low_precision
+
+all: $(TARGET1) $(TARGET2) $(TARGET3)
+
+$(TARGET1): $(OBJS1)
+	$(CC) $(LDFLAGS) -o $(TARGET1) $(OBJS1)
+
+$(TARGET2): $(OBJS2)
+	$(CC) $(LDFLAGS) -o $(TARGET2) $(OBJS2)
+
+$(TARGET3): $(OBJS3)
+	$(CC) $(LDFLAGS) -o $(TARGET3) $(OBJS3)
+
+%.o: %.cpp
+	$(CC) $(CFLAGS) -c $< -o $@
+
+clean:
+	rm -f $(OBJS1) $(TARGET1) $(OBJS2) $(TARGET2) $(OBJS3) $(TARGET3)
