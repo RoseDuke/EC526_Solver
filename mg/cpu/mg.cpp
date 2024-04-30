@@ -2,6 +2,8 @@
 #include <stdlib.h>
 #include <math.h>
 #include <complex.h>
+#include <chrono>
+
 
 typedef struct
 {
@@ -26,14 +28,19 @@ int main()
     int i, lev;
 
     // set parameters________________________________________
-    p.Lmax = 3;                    // max number of levels
+    p.Lmax = 4; //5~9                    // max number of levels
     p.N = 2 * (int)pow(2, p.Lmax); // MUST BE POWER OF 2
-
+    printf("N: %d\n", p.N);
     // set m^2 directly
-    p.m2 = 0.0001;
+    //p.m2 = 0.0001;
+    // p.m2 = 0.1; // 3000 e-6
+    // p.m2 = 0.01; // 19003 e-6
+    // p.m2 = 0.001; // 108023 e-6
+    p.m2 = 0.0001; // 980357 e-6
+
 
     //nlev = 6; // NUMBER OF LEVELS:  nlev = 0 give top level alone
-    nlev = 2;
+    nlev = p.Lmax - 1;
     if (nlev > p.Lmax)
     {
         printf("ERROR More levels than available in lattice! \n");
@@ -58,7 +65,9 @@ int main()
     for (lev = 0; lev < p.Lmax + 1; lev++)
     {
         phi[lev] = (double *)malloc(p.size[lev] * p.size[lev] * sizeof(double));
+
         res[lev] = (double *)malloc(p.size[lev] * p.size[lev] * sizeof(double));
+
         for (i = 0; i < p.size[lev] * p.size[lev]; i++)
         {
             phi[lev][i] = 0.0;
@@ -76,56 +85,31 @@ int main()
     printf("At the %d cycle the mag residue is %g \n", ncycle, resmag);
 
     // while(resmag > 0.00001 && ncycle < 10000)
-    while (resmag > 0.00001)
+    auto start = std::chrono::high_resolution_clock::now();
+    while (resmag > 1e-6)
     {
         ncycle += 1;
-        if(ncycle ==10)break;
+        //if(ncycle ==10)break;
         for (lev = 0; lev < nlev; lev++) // go down
         {
             relax(phi[lev], res[lev], lev, n_per_lev, p);       // lev = 1, ..., nlev-1
-                    
-                int L =  p.size[lev];
-                printf("rank 0 phi  lev %d\n", lev);
-                for(int i = 0; i < L * L; i++){
-                    if(i% L == 0) printf("\n");
-                    printf("%.4f ", phi[lev][i]);
-                }
-                printf("\n");
             proj_res(res[lev + 1], res[lev], phi[lev], lev, p); // res[lev+1] += P^dag res[lev]
-            L = p.size[lev + 1];
-            printf("rank 0 res lev+1\n");
-            for(int i = 0; i < L * L; i++){
-                if(i% L == 0) printf("\n");
-                printf("%.4f ", res[lev+1][i]);
-            }
-            printf("\n");
         }
 
         for (lev = nlev; lev >= 0; lev--) // come up
         {
-            relax(phi[lev], res[lev], lev, n_per_lev, p); // lev = nlev -1, ... 0;
 
-            int L =  p.size[lev];
-            printf("come up rank 0 phi  lev %d\n", lev);
-            for(int i = 0; i < L * L; i++){
-                if(i% L == 0) printf("\n");
-                printf("%.4f ", phi[lev][i]);
-            }
-            printf("\n");
+            relax(phi[lev], res[lev], lev, n_per_lev, p); // lev = nlev -1, ... 0;
             if (lev > 0)
                 inter_add(phi[lev - 1], phi[lev], lev, p); // phi[lev-1] += error = P phi[lev] and set phi[lev] = 0;
-            printf("rank 0 inter_add phi lev-1 %d\n", lev - 1);
-            L = p.size[lev - 1];
-            for(int i = 0; i < L * L; i++){
-                if(i% L == 0) printf("\n");
-                printf("%.4f ", phi[lev-1][i]);
-            }
-            printf("\n");
         }
         resmag = GetResRoot(phi[0], res[0], 0, p);
         printf("At the %d cycle the mag residue is %g \n", ncycle, resmag);
     }
+    auto end = std::chrono::high_resolution_clock::now();  // 结束计时
+    auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start).count();  // 计算持续时间
 
+    printf("The while loop took %ld microseconds.\n", duration);
     return 0;
 }
 
@@ -134,10 +118,8 @@ void relax(double *phi, double *res, int lev, int niter, param_t p)
     int i, x, y;
     int L;
     L = p.size[lev];
-
     double *phi_new = (double *)malloc(L * L * sizeof(double));
 
-    
     for (int x = 0; x < L; x++)
     {
         for (int y = 0; y < L; y++)
@@ -192,7 +174,6 @@ void proj_res(double *res_c, double *res_f, double *phi_f, int lev, param_t p)
     for (x = 0; x < Lc; x++)
         for (y = 0; y < Lc; y++)
             res_c[x + y * Lc] = 0.25 * (r[2 * x + 2 * y * L] + r[(2 * x + 1) % L + 2 * y * L] + r[2 * x + ((2 * y + 1)) % L * L] + r[(2 * x + 1) % L + ((2 * y + 1) % L) * L]);
-
     return;
 }
 
@@ -210,10 +191,13 @@ void inter_add(double *phi_f, double *phi_c, int lev, param_t p)
             phi_f[2 * x + ((2 * y + 1)) % L * L] += phi_c[x + y * Lc];
             phi_f[(2 * x + 1) % L + ((2 * y + 1) % L) * L] += phi_c[x + y * Lc];
         }
+    
     // set to zero so phi = error
+    
     for (x = 0; x < Lc; x++)
-        for (y = 0; y < Lc; y++)
+        for (y = 0; y < Lc; y++){
             phi_c[x + y * Lc] = 0.0;
+        }
 
     return;
 }

@@ -1,6 +1,7 @@
 parameters: m^2=0.0001, b_0(center)=1, cycle boundary
 
 | mg_layer | L   | Microsecond | Second |
+
 | -------- | --- | ----------- | ------ |
 | 3        | 32  | 3729296     | 3.7    |
 | 4        | 64  | 13583074    | 13     |
