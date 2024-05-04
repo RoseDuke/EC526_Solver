@@ -7,6 +7,9 @@ How to compile on SCC
 #### Step1: apply for a Nvidia-V100
 
 ~~~bash
+### we don't know whether there's V100 left in SCC,so use this
+qrsh -l gpus=1 -l gpu_type=V100 -pe omp 4
+### or this
 qrsh -l gpus=1 -l gpu_c=7.0 -pe omp 4
 ~~~
 
