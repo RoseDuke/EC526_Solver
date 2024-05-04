@@ -12,4 +12,14 @@ mpirun -np n mpi_CG_solver
 
 n is the number of processors, required to be a multiple of 2. 
 
-After the execution, there will be a text file in the working directory. 
+After the execution, there will be a text file in the working directory. Copy the python file under the same directory and execute it, the distribution of temperature will be presented. 
+
+Serial:
+
+I didn't write Makefile for this baseline, please use command
+
+g++ -g -Wall CG_solver.cpp -o CG_solver
+
+and
+
+./CG_Solver
