@@ -24,25 +24,27 @@ int main(int argc, char** argv) {
     for (int N = 512; N < 540; N = N * 2) {
         int i, totiter;
         int done = 0;
-        float** T = new float*[N + 2];
-        float** Ttmp = new float*[N + 2];
-        float** b = new float*[N + 2];
+        float** T = new float*[N];
+        float** Ttmp = new float*[N];
+        float** b = new float*[N];
         float bmag = 0;
         float resmag = 0;
-        for (i = 0; i < N + 2; i++) {
-            T[i] = new float[N + 2];
-            Ttmp[i] = new float[N + 2];
-            b[i] = new float[N + 2];
+        float m2 = 0.0001;
+        float scale = 1.0 / (4.0 + m2);
+        for (i = 0; i < N; i++) {
+            T[i] = new float[N];
+            Ttmp[i] = new float[N];
+            b[i] = new float[N];
         }
-        for (i = 0; i < N + 2; i++) {
-            for (int j = 0; j < N + 2; j++) {
+        for (i = 0; i < N; i++) {
+            for (int j = 0; j < N; j++) {
                 T[i][j] = 0.0f;
                 Ttmp[i][j] = 0.0f;
                 b[i][j] = 0.0f;
             }
         }
 
-        b[N / 2][N / 2] = 100.0f;
+        b[N / 2][N / 2] = 1;
         bmag = magnitude(b, N);
         printf("N = %d\n", N);
         printf("bmag: %.8e\n", bmag);
@@ -50,25 +52,34 @@ int main(int argc, char** argv) {
 
         std::chrono::time_point<std::chrono::steady_clock> begin_time = std::chrono::steady_clock::now();
 
-        #pragma acc data copy(T[0:N+2][0:N+2]), copyin(b[0:N+2][0:N+2])
+        #pragma acc data copy(T[0:N][0:N]), copyin(b[0:N][0:N])
         {
+            int left, right, up, down;
             for (totiter = RESID_FREQ; totiter < ITER_MAX && done == 0; totiter += RESID_FREQ) {
                 for (int iter = 0; iter < RESID_FREQ; iter++) {
                     #pragma acc parallel loop 
-                    for (int index = 1; index < N * N; index++) {
+                    for (int index = 0; index < N * N; index++) {
                         int i = index / N;
                         int j = index % N;
-                        if ((i + j) % 2 == 0 && i > 0 && j > 0 && i < N && j < N) { 
-                            T[i][j] = 0.25f * (T[i][j + 1] + T[i][j - 1] + T[i + 1][j] + T[i - 1][j]) + b[i][j];
+                        if ((i + j) % 2 == 0) { 
+                            left = (i - 1 + N) % N;  
+                            right = (i + 1) % N;   
+                            up = (j - 1 + N) % N;   
+                            down = (j + 1) % N;     
+                            T[i][j] = scale * (T[i][up] + T[i][down] + T[left][j] + T[right][j]) + b[i][j];
                         }
                     }
 
                     #pragma acc parallel loop 
-                    for (int index = 1; index < N * N; index++) {
+                    for (int index = 0; index < N * N; index++) {
                         int i = index / N;
                         int j = index % N;
-                        if ((i + j) % 2 == 1 && i > 0 && j > 0 && i < N && j < N) {  
-                            T[i][j] = 0.25f * (T[i][j + 1] + T[i][j - 1] + T[i + 1][j] + T[i - 1][j]) + b[i][j];
+                        if ((i + j) % 2 == 1) { 
+                            left = (i - 1 + N) % N;  
+                            right = (i + 1) % N;   
+                            up = (j - 1 + N) % N;   
+                            down = (j + 1) % N;      
+                            T[i][j] = scale * (T[i][up] + T[i][down] + T[left][j] + T[right][j]) + b[i][j];
                         }
                     }
                 }
@@ -80,9 +91,13 @@ int main(int argc, char** argv) {
                 resmag = 0.0f;
 
                 #pragma acc parallel loop collapse(2)
-                for (i=1;i<N;i++) {
-                    for (j=1;j<N;j++) {
-                        localres = (b[i][j] - T[i][j] + 0.25f*(T[i][j+1] + T[i][j-1] + T[i+1][j] + T[i-1][j]));
+                for (i=0;i<N;i++) {
+                    for (j=0;j<N;j++) {
+                        left = (i - 1 + N) % N;  
+                        right = (i + 1) % N;   
+                        up = (j - 1 + N) % N;   
+                        down = (j + 1) % N;     
+                        localres = (b[i][j] - T[i][j] + scale*(T[i][up] + T[i][down] + T[left][j] + T[right][j]));
                         localres = localres*localres;
                         resmag = resmag + localres;
                     }

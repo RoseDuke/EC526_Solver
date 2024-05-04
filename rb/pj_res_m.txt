@@ -1,0 +1,43 @@
+512:
+Jacobi: 4.49852165e+02 317000
+Red-black: 1.93366492e+02 159000
+Red-black (OpenACC): 4.39287156e+01
+Red-black (collapse loop): 5.32667434e+00
+Red-black (blocking): 8.39100534e+00
+Red-black (data transfer optimized): 3.56869066e+00
+
+
+256:
+Jacobi: 1.26068042e+02
+Red-black:  5.40414103e+01
+Red-black (OpenACC): 2.49612365e+01
+Red-black (collapse loop): 3.89451832e+00
+Red-black (blocking): 5.78343987e+00
+Red-black (data transfer optimized): 2.79698025e+00
+
+
+128:
+Jacobi: 3.05102667e+01
+Red-black: 1.44078991e+01
+Red-black (OpenACC): 1.50835710e+01
+Red-black (collapse loop): 3.33742413e+00
+Red-black (blocking): 5.93803590e+00
+Red-black (data transfer optimized): 2.75173531e+00
+
+
+64:
+Jacobi: 8.26609884e+00
+Red-black: 3.94712591e+00
+Red-black (OpenACC): 7.10981125e+00
+Red-black (collapse loop): 3.07643712e+00
+Red-black (blocking): 5.67538773e+00
+Red-black (data transfer optimized): 2.88773090e+00
+
+
+32:
+Jacobi: 2.35934551e+00
+Red-black: 1.11774543e+00
+Red-black (OpenACC): 4.84083615e+00
+Red-black (collapse loop): 3.18486314e+00
+Red-black (blocking): 5.45391659e+00
+Red-black (data transfer optimized): 2.88346229e+00

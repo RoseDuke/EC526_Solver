@@ -1,0 +1,53 @@
+1. To run Jacobi:
+
+```
+make -k -f makeACC pj_jacobi_2d
+./pj_jacobi_2d
+```
+
+2. To run red-black:
+
+```
+make -k -f makeACC pj_red_black
+./pj_red_black
+```
+
+3. To run red_black with simple openacc:
+
+```
+make -k -f makeACC pj_red_black_openacc
+./pj_red_black_openacc
+```
+
+4. To run red_black with loop collapse
+
+```
+make -k -f makeACC pj_red_black_collapse
+./pj_red_black_collapse
+```
+
+5. To run red_black with blocking
+
+```
+make -k -f makeACC pj_red_black_blocking
+./pj_red_black_blocking
+```
+
+6. To run red_black with data transfer optimization
+
+```
+make -k -f makeACC pj_red_black_memory
+./pj_red_black_memory
+```
+
+7. To run red_black with low_precision
+
+```
+make -k -f makeACC pj_red_black_low_precision
+./pj_red_black_low_precision
+```
+
+
+
+To change N, need to manually change the N defined in the first line of main function (also need to modify the end condition).
+

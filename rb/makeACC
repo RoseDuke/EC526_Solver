@@ -4,17 +4,25 @@ CFLAGS= -g -Wall -std=c++11 -Minfo=accel -fast -acc -ta=tesla:cc70
 
 LDFLAGS=-acc -ta=tesla:cc70 -Mcuda
 
-OBJS1=pj_jacobi_2d.o
+OBJS1=pj_jacobi_2d_basic.o
 OBJS2=pj_red_black_memory.o
 OBJS3=pj_red_black_low_precision.o
-OBJS4=pj_jacobi_2d_m.o
+OBJS4=pj_jacobi_2d.o
+OBJS5=pj_red_black.o
+OBJS6=pj_red_black_openacc.o
+OBJS7=pj_red_black_collapse.o
+OBJS8=pj_red_black_blocking.o
 
-TARGET1=pj_jacobi_2d
+TARGET1=pj_jacobi_2d_basic
 TARGET2=pj_red_black_memory
 TARGET3=pj_red_black_low_precision
-TARGET4=pj_jacobi_2d_m
+TARGET4=pj_jacobi_2d
+TARGET5=pj_red_black
+TARGET6=pj_red_black_openacc
+TARGET7=pj_red_black_collapse
+TARGET8=pj_red_black_blocking
 
-all: $(TARGET1) $(TARGET2) $(TARGET3)
+all: $(TARGET1) $(TARGET2) $(TARGET3) $(TARGET4) $(TARGET5) $(TARGET6) $(TARGET7) $(TARGET8)
 
 $(TARGET1): $(OBJS1)
 	$(CC) $(LDFLAGS) -o $(TARGET1) $(OBJS1)
@@ -28,8 +36,20 @@ $(TARGET3): $(OBJS3)
 $(TARGET4): $(OBJS4)
 	$(CC) $(LDFLAGS) -o $(TARGET4) $(OBJS4)
 
+$(TARGET5): $(OBJS5)
+	$(CC) $(LDFLAGS) -o $(TARGET5) $(OBJS5)
+
+$(TARGET6): $(OBJS6)
+	$(CC) $(LDFLAGS) -o $(TARGET6) $(OBJS6)
+
+$(TARGET7): $(OBJS7)
+	$(CC) $(LDFLAGS) -o $(TARGET7) $(OBJS7)
+
+$(TARGET8): $(OBJS8)
+	$(CC) $(LDFLAGS) -o $(TARGET8) $(OBJS8)
+
 %.o: %.cpp
 	$(CC) $(CFLAGS) -c $< -o $@
 
 clean:
-	rm -f $(OBJS1) $(TARGET1) $(OBJS2) $(TARGET2) $(OBJS3) $(TARGET3) $(OBJS4) $(TARGET4)
+	rm -f $(OBJS1) $(TARGET1) $(OBJS2) $(TARGET2) $(OBJS3) $(TARGET3) $(OBJS4) $(TARGET4) $(OBJS5) $(TARGET5) $(OBJS6) $(TARGET6) $(OBJS7) $(TARGET7) $(OBJS8) $(TARGET8)
