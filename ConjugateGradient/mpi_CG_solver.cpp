@@ -204,7 +204,7 @@ int main(int argc, char** argv)
 
   FILE* outfile_mpi;
   if (rank == 0) {
-        outfile_mpi = fopen("phi_mpi_1D_periodic_boundary.txt", "w");
+        outfile_mpi = fopen("phi_mpi_periodic_boundary.txt", "w");
         if (!outfile_mpi) {
             std::cerr << "Failed to open file for writing." << std::endl;
             MPI_Abort(MPI_COMM_WORLD, 1);  // Handle error appropriately
