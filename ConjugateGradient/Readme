@@ -6,4 +6,4 @@ To run the executable file, the command is
 
 mpirun -np n mpi_CG_solver
 
-n is the number of processors, required to be a multiply of 2. 
+n is the number of processors, required to be a multiple of 2. 
