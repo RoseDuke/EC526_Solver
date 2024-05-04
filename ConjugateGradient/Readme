@@ -1,3 +1,7 @@
+MPI:
+
+To change the problem size, change the Lx and Ly at the very beginning of the program. Notice in our scenerio Lx must equal to Ly.
+
 To compile the executable file, the command is
 
 $make mpi_CG_solver
@@ -7,3 +11,5 @@ To run the executable file, the command is
 mpirun -np n mpi_CG_solver
 
 n is the number of processors, required to be a multiple of 2. 
+
+After the execution, there will be a text file in the working directory. 
