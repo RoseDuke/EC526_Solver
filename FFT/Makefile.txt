@@ -1,0 +1,36 @@
+.SUFFIXES:
+.SUFFIXES: .o .cpp
+
+#============================================================
+TARGET	=  fft
+
+C_SOURCES = fft_solver.cpp
+C_OBJS     =  fft_solver.o
+
+CCX = pgc++
+CXXFLAGS = -g -Wall -std=c++11 -Minfo=accel -fast -acc -ta=tesla:cc70 $(INC)
+
+#============================================================
+all: $(TARGET)
+
+%.o: %.cpp
+	$(CCX) $(CXXFLAGS) -c $< -o $@
+
+$(TARGET): $(C_OBJS)
+	echo Using Compiler: $(CCX)
+	$(CCX) $(CXXFLAGS) $^ -o $@ $(LIBS)
+
+# Implicit rules: $@ = target name, $< = first prerequisite name, $^ = name of all prerequisites 
+#============================================================
+
+ALL_SOURCES = Makefile $(C_SOURCES)
+
+NOTES = FFT_2021.pdf
+
+clean:
+	rm -f $(TARGET) $(C_OBJS) *.*~ core 
+
+tar: $(ALL_SOURCES) $(NOTES)
+	tar cvf $(TARGET).tar $(ALL_SOURCES)  $(NOTES)
+
+
